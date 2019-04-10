@@ -16,9 +16,10 @@ public class HttpConnectionHandler implements IConnection<HttpURLConnection, Str
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Content-Type", "application/json");
-            // TODO: Check this time amount
-            connection.setConnectTimeout(2000);
-            connection.setConnectTimeout(2000);
+
+            // Give supplier a total of 2 seconds to respond
+            connection.setConnectTimeout(500);
+            connection.setReadTimeout(1500);
 
             int status = connection.getResponseCode();
 
@@ -31,7 +32,6 @@ public class HttpConnectionHandler implements IConnection<HttpURLConnection, Str
             System.out.println("Error: Could not access url address");
             return null;
         } catch (IOException e) {
-            System.out.println("Failed to connect to URL address");
             return null;
         }
     }
