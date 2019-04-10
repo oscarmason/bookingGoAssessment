@@ -18,8 +18,8 @@ public class HttpConnectionHandler implements IConnection<HttpURLConnection, Str
             connection.setRequestProperty("Content-Type", "application/json");
 
             // Give supplier a total of 2 seconds to respond
-            connection.setConnectTimeout(500);
-            connection.setReadTimeout(1500);
+            connection.setConnectTimeout(400);
+            connection.setReadTimeout(1600);
 
             int status = connection.getResponseCode();
 
@@ -32,6 +32,7 @@ public class HttpConnectionHandler implements IConnection<HttpURLConnection, Str
             System.out.println("Error: Could not access url address");
             return null;
         } catch (IOException e) {
+            System.out.println("Timed out");
             return null;
         }
     }
@@ -53,7 +54,6 @@ public class HttpConnectionHandler implements IConnection<HttpURLConnection, Str
         } catch (IOException e) {
             System.out.println("Failed to retrieve response");
         }
-
 
         return content.toString();
     }
