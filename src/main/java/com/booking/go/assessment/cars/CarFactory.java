@@ -4,19 +4,19 @@ import com.booking.go.assessment.Supplier;
 
 public class CarFactory {
 
-    public Car createCar(String carType, int price, Supplier registeredSupplier){
+    public Car createCar(String carType){
         if("STANDARD".equals(carType)){
-            return new CarStandard(carType, price, 4, registeredSupplier);
+            return new CarStandard();
         }else if("EXECUTIVE".equals(carType)){
-            return new CarExecutive(carType, price, 4, registeredSupplier);
+            return new CarExecutive();
         }else if("LUXURY".equals(carType)){
-            return new CarExecutive(carType, price, 4, registeredSupplier);
+            return new CarLuxury();
         }else if("PEOPLE_CARRIER".equals(carType)){
-            return new CarExecutive(carType, price, 6, registeredSupplier);
+            return new CarPeopleCarrier();
         }else if("LUXURY_PEOPLE_CARRIER".equals(carType)){
-            return new CarExecutive(carType, price, 6, registeredSupplier);
+            return new CarLuxuryPeopleCarrier();
         }else if("MINIBUS".equals(carType)){
-            return new CarExecutive(carType, price, 16, registeredSupplier);
+            return new CarMinibus();
         }else{
             return null;
         }
