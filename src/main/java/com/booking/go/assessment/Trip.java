@@ -1,16 +1,22 @@
 package com.booking.go.assessment;
 
-public class Journey {
-    private double pickupLat = 0;
-    private double pickupLong = 0;
-    private double dropoffLat = 0;
-    private double dropoffLong = 0;
+public class Trip {
+    private double pickupLat;
+    private double pickupLong;
+    private double dropoffLat;
+    private double dropoffLong;
+    private int numPassengers;
 
-    Journey(double pickupLat, double pickupLong, double dropoffLat, double dropoffLong){
+    Trip(double pickupLat, double pickupLong, double dropoffLat, double dropoffLong){
+        this(pickupLat, pickupLong, dropoffLat, dropoffLong, 1);
+    }
+
+    Trip(double pickupLat, double pickupLong, double dropoffLat, double dropoffLong, int numPassengers){
         this.pickupLat = pickupLat;
         this.pickupLong = pickupLong;
         this.dropoffLat = dropoffLat;
         this.dropoffLong = dropoffLong;
+        this.numPassengers = numPassengers;
     }
 
     public double getPickupLat() {
@@ -27,5 +33,9 @@ public class Journey {
 
     public double getDropoffLong() {
         return dropoffLong;
+    }
+
+    public int getNumPassengers(){
+        return numPassengers;
     }
 }

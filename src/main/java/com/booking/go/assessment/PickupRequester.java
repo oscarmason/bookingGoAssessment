@@ -13,8 +13,24 @@ class PickupRequester {
     private static final String REQUEST_ROOT_URL = "https://techtest.rideways.com/";
     private static final String JSON_CAR_OPTIONS = "options";
 
-    private Set<Car> getSupplierResults(Journey journey, int numPassengers, Supplier supplier){
-        Map<String, String> parameters = journeyRequestLocationsToParameters(journey);
+    PriorityQueue<Ride> queryRidesFromAllSuppliers(Trip trip){
+        Map<String, Ride> rides = new HashMap<>();
+
+        for(Supplier supplier : Supplier.values()){
+            Set<Ride> ridesFromSupplier = getSupplierResults(trip, supplier);
+            for(Ride ride : ridesFromSupplier){
+                if(!rides.containsKey(ride.getCar().CAR_TYPE)
+                        || ride.getPrice() < rides.get(ride.getCar().CAR_TYPE).getPrice()){
+                    rides.put(ride.getCar().CAR_TYPE, ride);
+                }
+            }
+        }
+
+        return orderRidesByPriceAscending(rides);
+    }
+
+    Set<Ride> getSupplierResults(Trip trip, Supplier supplier){
+        Map<String, String> parameters = journeyRequestLocationsToParameters(trip);
         String parsedParameters = new HttpUrlParameterParser().parseParameters(parameters);
         String urlAddress = REQUEST_ROOT_URL + supplier.toString() + "?" + parsedParameters;
         IConnection<HttpURLConnection, String> httpConnectionHandler = new HttpConnectionHandler();
@@ -25,61 +41,42 @@ class PickupRequester {
         }
 
         String response = httpConnectionHandler.getResponse(connection);
-        return extractCarsFromResponse(response, numPassengers, supplier);
+        System.out.println(response);
+        return extractRidesFromResponse(response, trip.getNumPassengers(), supplier);
     }
 
-    void pickupRequest(Journey journey, int numPassengers){
-        Map<String, Car> cars = new HashMap<>();
+    private PriorityQueue<Ride> orderRidesByPriceAscending(Map<String, Ride> rides){
+        PriorityQueue<Ride> ridesOrderedByPrice = new PriorityQueue<>(
+                Comparator.comparing(Ride::getPrice));
 
-        for(Supplier supplier : Supplier.values()){
-            Set<Car> carsFromSupplier = getSupplierResults(journey, numPassengers, supplier);
-
-            for(Car car : carsFromSupplier){
-                if(!cars.containsKey(car.CAR_TYPE) || car.getPrice() < cars.get(car.CAR_TYPE).getPrice()){
-                    cars.put(car.CAR_TYPE, car);
-                }
-            }
-        }
-
-        PriorityQueue<Car> orderedCars = orderCars(cars);
-        printSearchResults(orderedCars);
+        ridesOrderedByPrice.addAll(rides.values());
+        return ridesOrderedByPrice;
     }
 
-    private PriorityQueue<Car> orderCars(Map<String, Car> cars){
-        PriorityQueue<Car> carsOrderedByPrice =  new PriorityQueue<>(
-                Comparator.comparing(Car::getPrice));
+    PriorityQueue<Ride> orderRidesByPriceAscending(Set<Ride> rides){
+        PriorityQueue<Ride> ridesOrderedByPrice = new PriorityQueue<>(
+                Comparator.comparing(Ride::getPrice));
 
-        carsOrderedByPrice.addAll(cars.values());
-        return carsOrderedByPrice;
+        ridesOrderedByPrice.addAll(rides);
+        return ridesOrderedByPrice;
     }
 
-    private void printSearchResults(PriorityQueue<Car> cars){
-        if(cars.isEmpty()){
-            System.out.println("Unfortunately there are not cars available at this time");
-        }
-
-        while(!cars.isEmpty()){
-            Car car = cars.poll();
-            System.out.println(car.CAR_TYPE + " - " + car.getRegisteredSupplier() + " - " + car.getPrice());
-        }
-    }
-
-    private Map<String, String> journeyRequestLocationsToParameters(Journey journey){
+    private Map<String, String> journeyRequestLocationsToParameters(Trip trip){
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("pickup", journey.getPickupLat() + "," + journey.getPickupLong());
-        parameters.put("dropoff", journey.getDropoffLat() + "," + journey.getDropoffLong());
+        parameters.put("pickup", trip.getPickupLat() + "," + trip.getPickupLong());
+        parameters.put("dropoff", trip.getDropoffLat() + "," + trip.getDropoffLong());
         return parameters;
     }
 
-    private Set<Car> extractCarsFromResponse(String response, int numPassengers, Supplier supplier){
+    private Set<Ride> extractRidesFromResponse(String response, int numPassengers, Supplier supplier){
         JSONArray carOptions;
-        Set<Car> cars = new HashSet<>();
+        Set<Ride> rides = new HashSet<>();
 
         try{
             JSONObject responseJSON = new JSONObject(response);
             carOptions = responseJSON.getJSONArray(JSON_CAR_OPTIONS);
         }catch (JSONException e){
-            return cars;
+            return rides;
         }
 
         CarFactory carFactory = new CarFactory();
@@ -88,17 +85,17 @@ class PickupRequester {
             try{
                 String carType = carOptions.getJSONObject(i).getString("car_type");
                 int price = carOptions.getJSONObject(i).getInt("price");
-                Car car = carFactory.createCar(carType, price, supplier);
+                Car car = carFactory.createCar(carType);
 
                 if(car != null && car.MAX_PASSENGERS >= numPassengers){
-                    cars.add(car);
+                    rides.add(new Ride(car, price, supplier));
                 }
 
             }catch (JSONException ignored){
             }
         }
 
-        return cars;
+        return rides;
     }
 
 
