@@ -20,7 +20,12 @@ class PickupRequester {
         IConnection<HttpURLConnection, String> httpConnectionHandler = new HttpConnectionHandler();
         HttpURLConnection connection = httpConnectionHandler.connect(urlAddress);
 
-        return null;
+        if(connection == null){
+            return new HashSet<>();
+        }
+
+        String response = httpConnectionHandler.getResponse(connection);
+        return extractCarsFromResponse(response, numPassengers, supplier);
     }
 
     private Map<String, String> journeyRequestLocationsToParameters(Journey journey){
@@ -29,4 +34,36 @@ class PickupRequester {
         parameters.put("dropoff", journey.getDropoffLat() + "," + journey.getDropoffLong());
         return parameters;
     }
+
+    private Set<Car> extractCarsFromResponse(String response, int numPassengers, Supplier supplier){
+        JSONArray carOptions;
+        Set<Car> cars = new HashSet<>();
+
+        try{
+            JSONObject responseJSON = new JSONObject(response);
+            carOptions = responseJSON.getJSONArray(JSON_CAR_OPTIONS);
+        }catch (JSONException e){
+            return cars;
+        }
+
+        CarFactory carFactory = new CarFactory();
+
+        for(int i = 0; i < carOptions.length(); i++){
+            try{
+                String carType = carOptions.getJSONObject(i).getString("car_type");
+                int price = carOptions.getJSONObject(i).getInt("price");
+                Car car = carFactory.createCar(carType, price, supplier);
+
+                if(car != null && car.MAX_PASSENGERS >= numPassengers){
+                    cars.add(car);
+                }
+
+            }catch (JSONException ignored){
+            }
+        }
+
+        return cars;
+    }
+
+
 }
