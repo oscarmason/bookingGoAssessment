@@ -21,23 +21,23 @@ public class RequestController {
      */
     @RequestMapping("/")
     public ResponseEntity<String> getRides(
-            @RequestParam(value="pickup") String pickup,
-            @RequestParam(value="dropoff") String dropoff,
+            @RequestParam(value="pickup", defaultValue = "") String pickup,
+            @RequestParam(value="dropoff", defaultValue = "") String dropoff,
             @RequestParam(value="num_passengers", defaultValue = "1") String numPassengers){
-
-        if(pickup == null || dropoff == null){
-            throw new InvalidInputException(InvalidInputException.INVALID_PICKUP_AND_DROPOFF_LOCATION);
-        }
 
         String[] pickupLocation = pickup.split(",");
         String[] dropoffLocation = dropoff.split(",");
 
         if(pickupLocation.length < 2 || dropoffLocation.length < 2){
-            throw new InvalidInputException(InvalidInputException.INVALID_PICKUP_AND_DROPOFF_LOCATION);
+            throw new InvalidInputException(InvalidInputException.INPUT_FORMAT_EXAMPLE);
         }
 
         Trip trip = new InputParser().parseTripInput(pickupLocation[0], pickupLocation[1],
                 dropoffLocation[0], dropoffLocation[1], numPassengers);
+
+        if(trip == null){
+            throw new InvalidInputException(InvalidInputException.INPUT_FORMAT_EXAMPLE);
+        }
 
         PriorityQueue<Ride> rides = new PickupRequester().queryRidesFromAllSuppliers(trip);
         return new ResponseEntity<>(ridesToJSON(rides), new HttpHeaders(), HttpStatus.OK);
