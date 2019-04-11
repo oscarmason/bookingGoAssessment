@@ -11,7 +11,7 @@ Its dependencies are:
 ## Build
 To build the jar files, execute:
 
-'mvn package'
+`mvn package`
 
 ## Part 1
 

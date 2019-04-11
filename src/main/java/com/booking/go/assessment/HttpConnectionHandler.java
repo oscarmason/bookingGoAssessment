@@ -26,9 +26,8 @@ public class HttpConnectionHandler implements IConnection<HttpURLConnection, Str
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Content-Type", "application/json");
 
-            // Give supplier a total of 2 seconds to respond
-            connection.setConnectTimeout(500);
-            connection.setReadTimeout(1500);
+            // Give 2 seconds to respond
+            connection.setConnectTimeout(2000);
 
             int status = connection.getResponseCode();
 
