@@ -12,6 +12,13 @@ import java.util.PriorityQueue;
 @RestController
 public class RequestController {
 
+    /**
+     * Responsible for taking the user's query and finding suitable rides via the PickupRequester
+     * @param pickup should be in the format: pickup_lat,pickup_long
+     * @param dropoff should be in the format: dropoff_lat,dropoff_long
+     * @param numPassengers number of passengers
+     * @return The JSON response containing all the relevant rides
+     */
     @RequestMapping("/")
     public ResponseEntity<String> getRides(
             @RequestParam(value="pickup") String pickup,
@@ -33,9 +40,14 @@ public class RequestController {
                 dropoffLocation[0], dropoffLocation[1], numPassengers);
 
         PriorityQueue<Ride> rides = new PickupRequester().queryRidesFromAllSuppliers(trip);
-        return new ResponseEntity<String>(ridesToJSON(rides), new HttpHeaders(), HttpStatus.OK);
+        return new ResponseEntity<>(ridesToJSON(rides), new HttpHeaders(), HttpStatus.OK);
     }
 
+    /**
+     * Formats the rides into the JSON format
+     * @param rides Priority queue of rides
+     * @return Rides returned in the JSON format as a string
+     */
     private String ridesToJSON(PriorityQueue<Ride> rides){
         JSONObject allRides = new JSONObject();
         JSONArray ridesArray = new JSONArray();
@@ -51,6 +63,6 @@ public class RequestController {
 
         allRides.put("available_rides", ridesArray);
 
-        return allRides.toString(4);
+        return allRides.toString();
     }
 }

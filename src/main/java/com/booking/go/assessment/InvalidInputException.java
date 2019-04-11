@@ -1,9 +1,11 @@
 package com.booking.go.assessment;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+/**
+ * Custom exception used for validating the user's input
+ */
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class InvalidInputException extends RuntimeException {
     public static final String INVALID_PICKUP_AND_DROPOFF_LOCATION = "Please provide the pickup and drop off location";

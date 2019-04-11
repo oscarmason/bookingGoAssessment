@@ -13,11 +13,17 @@ class PickupRequester {
     private static final String REQUEST_ROOT_URL = "https://techtest.rideways.com/";
     private static final String JSON_CAR_OPTIONS = "options";
 
+    /**
+     * Checks all suppliers and compiles the cheapest rides for the car types available
+     * sorted by price in ascending order
+     * @param trip Trip to find a ride for
+     * @return Priority queue containing the relevant rides
+     */
     PriorityQueue<Ride> queryRidesFromAllSuppliers(Trip trip){
         Map<String, Ride> rides = new HashMap<>();
 
         for(Supplier supplier : Supplier.values()){
-            Set<Ride> ridesFromSupplier = getSupplierResults(trip, supplier);
+            Set<Ride> ridesFromSupplier = queryRidesFromSupplier(trip, supplier);
             for(Ride ride : ridesFromSupplier){
                 if(!rides.containsKey(ride.getCar().CAR_TYPE)
                         || ride.getPrice() < rides.get(ride.getCar().CAR_TYPE).getPrice()){
@@ -29,7 +35,13 @@ class PickupRequester {
         return orderRidesByPriceAscending(rides);
     }
 
-    Set<Ride> getSupplierResults(Trip trip, Supplier supplier){
+    /**
+     * Returns a set of rides for a given supplier
+     * @param trip Trip to find a ride for
+     * @param supplier Supplier to use
+     * @return Set containing the rides
+     */
+    Set<Ride> queryRidesFromSupplier(Trip trip, Supplier supplier){
         Map<String, String> parameters = journeyRequestLocationsToParameters(trip);
         String parsedParameters = new HttpUrlParameterParser().parseParameters(parameters);
         String urlAddress = REQUEST_ROOT_URL + supplier.toString() + "?" + parsedParameters;
@@ -41,34 +53,48 @@ class PickupRequester {
         }
 
         String response = httpConnectionHandler.getResponse(connection);
-        System.out.println(response);
         return extractRidesFromResponse(response, trip.getNumPassengers(), supplier);
     }
 
-    private PriorityQueue<Ride> orderRidesByPriceAscending(Map<String, Ride> rides){
-        PriorityQueue<Ride> ridesOrderedByPrice = new PriorityQueue<>(
-                Comparator.comparing(Ride::getPrice));
-
-        ridesOrderedByPrice.addAll(rides.values());
-        return ridesOrderedByPrice;
+    /**
+     * Converts map of rides into a priority queue. Used when multiple suppliers are queried
+     * @param rides Map of rides
+     * @return Priority queue containing rides
+     */
+    PriorityQueue<Ride> orderRidesByPriceAscending(Map<String, Ride> rides){
+        return new PriorityQueue<>(rides.values());
     }
 
+    /**
+     * Converts set of rides into a priority queue. Used when one supplier is queried
+     * @param rides Set of rides
+     * @return Priority queue containing rides
+     */
     PriorityQueue<Ride> orderRidesByPriceAscending(Set<Ride> rides){
-        PriorityQueue<Ride> ridesOrderedByPrice = new PriorityQueue<>(
-                Comparator.comparing(Ride::getPrice));
-
-        ridesOrderedByPrice.addAll(rides);
-        return ridesOrderedByPrice;
+        return new PriorityQueue<>(rides);
     }
 
-    private Map<String, String> journeyRequestLocationsToParameters(Trip trip){
+    /**
+     * Creates a map of parameters from the trip locations
+     * @param trip Trip to create parameters from
+     * @return Map of parameters
+     */
+    Map<String, String> journeyRequestLocationsToParameters(Trip trip){
         Map<String, String> parameters = new HashMap<>();
         parameters.put("pickup", trip.getPickupLat() + "," + trip.getPickupLong());
         parameters.put("dropoff", trip.getDropoffLat() + "," + trip.getDropoffLong());
         return parameters;
     }
 
-    private Set<Ride> extractRidesFromResponse(String response, int numPassengers, Supplier supplier){
+    /**
+     * Extracts a set of rides from a single supplier where the cars for the ride can all
+     * hold enough passengers
+     * @param response Response from the API
+     * @param numPassengers Number of passengers needing a ride
+     * @param supplier Supplier to query
+     * @return Set of rides
+     */
+    Set<Ride> extractRidesFromResponse(String response, int numPassengers, Supplier supplier){
         JSONArray carOptions;
         Set<Ride> rides = new HashSet<>();
 

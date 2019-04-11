@@ -4,7 +4,7 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 public class Task1 {
-    private static String format = "Please enter the pickup and dropoff points as follows" +
+    private static String help = "Please enter the pickup and dropoff points as follows" +
             "along with an optional value for the number of passengers:\n" +
             " com.booking.go.assessment.Task1 pickup_lat pickup_long dropoff_lat dropoff_long num_passengers\n" +
             "For example:\n" +

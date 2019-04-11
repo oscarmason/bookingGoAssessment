@@ -7,10 +7,19 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+/**
+ * HttpConnectionHandler is responsible for connection to the urlAddress passed in and
+ * error handling
+ */
 public class HttpConnectionHandler implements IConnection<HttpURLConnection, String> {
+
+    /**
+     * Attempts to connect to the url passed in
+     * @param urlAddress Address to connect to
+     * @return Connection if successfully created, null otherwise
+     */
     @Override
     public HttpURLConnection connect(String urlAddress) {
-        // TODO: Wrap this connection in a thread
         try {
             URL url = new URL(urlAddress);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -18,15 +27,14 @@ public class HttpConnectionHandler implements IConnection<HttpURLConnection, Str
             connection.setRequestProperty("Content-Type", "application/json");
 
             // Give supplier a total of 2 seconds to respond
-            connection.setConnectTimeout(400);
-            connection.setReadTimeout(1600);
+            connection.setConnectTimeout(500);
+            connection.setReadTimeout(1500);
 
             int status = connection.getResponseCode();
 
             if(!connectedSuccessfully(status)){
                 return null;
             }
-
             return connection;
         } catch (MalformedURLException e) {
             System.out.println("Error: Could not access url address");
@@ -37,6 +45,11 @@ public class HttpConnectionHandler implements IConnection<HttpURLConnection, Str
         }
     }
 
+    /**
+     * Retrieves the response from the connection
+     * @param connection Connection to reap from
+     * @return Returns the response as a string
+     */
     @Override
     public String getResponse(HttpURLConnection connection) {
         BufferedReader bufferedReader = null;
@@ -58,6 +71,11 @@ public class HttpConnectionHandler implements IConnection<HttpURLConnection, Str
         return content.toString();
     }
 
+    /**
+     * Checks the common status codes
+     * @param status status code
+     * @return whether the status code signifies success or failure
+     */
     private boolean connectedSuccessfully(int status){
         if(status == 200){
             return true;
