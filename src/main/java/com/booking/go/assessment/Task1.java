@@ -12,56 +12,65 @@ public class Task1 {
 
     public static void main(String[] args) {
         int numArgs = args.length;
+        boolean queryAllSuppliers = true;
 
-        int i = 0;
-        boolean getAllResults = true;
-
-        // Check for option
-        if((numArgs == 5 || numArgs == 6) && args[i].charAt(0) == '-'){
-            if(args[i].length() > 1 && args[i].charAt(1) == 'd'){
-                getAllResults = false;
-            }else{
-                System.out.println("Unsupported argument");
-                return;
-            }
-            i++;
-        }
-
-        Trip trip = null;
-        try{
-            if(numArgs - i == 4){
-                trip = new InputParser().parseTripInput(args[i], args[i+1], args[i+2], args[i+3]);
-            }else if(numArgs - i == 5){
-                trip = new InputParser().parseTripInput(args[i], args[i+1], args[i+2], args[i+3], args[i+4]);
-            }else{
-                System.out.println(format);
-                return;
-            }
-        }catch(InvalidInputException e){
-            System.out.println(format);
+        if(numArgs < 4 || numArgs > 6){
+            System.out.println(help);
             return;
         }
 
-        PriorityQueue<Ride> allRides = null;
+        String[] locations = new String[4];
+        int locationsAdded = 0;
+        String numPassengers = "1";
 
-        if(getAllResults){
-            allRides = new PickupRequester().queryRidesFromAllSuppliers(trip);
-        }else{
-            Set<Ride> rides = new PickupRequester().getSupplierResults(trip, Supplier.DAVE);
-            allRides = new PickupRequester().orderRidesByPriceAscending(rides);
+        for(String arg : args){
+            if(arg.charAt(0) == '-' && arg.length() > 1 && arg.charAt(1) == 'd'){
+                queryAllSuppliers = false;
+            }else if(locationsAdded < locations.length){
+                locations[locationsAdded] = arg;
+                locationsAdded++;
+            }else{
+                numPassengers = arg;
+            }
         }
 
-        if(allRides.isEmpty()){
+        Trip trip = new InputParser().parseTripInput(locations[0], locations[1],
+                locations[2], locations[3], numPassengers);
+
+        if(trip == null){
+            System.out.println(help);
+            return;
+        }
+
+        PriorityQueue<Ride> availableRides = getAvailableRides(trip, queryAllSuppliers);
+        printResults(availableRides, queryAllSuppliers);
+    }
+
+    private static void printResults(PriorityQueue<Ride> availableRides, boolean queryAllSuppliers){
+        if(availableRides.isEmpty()){
             System.out.println("Unfortunately there are not cars available at this time");
         }
 
-        while(!allRides.isEmpty()){
-            Ride ride = allRides.poll();
-            if(getAllResults){
+        while(!availableRides.isEmpty()){
+            Ride ride = availableRides.poll();
+            if(queryAllSuppliers){
                 System.out.println(ride.getCar().CAR_TYPE + " - " + ride.getSupplier() + " - " + ride.getPrice());
             }else{
                 System.out.println(ride.getCar().CAR_TYPE + " - " + ride.getPrice());
             }
         }
+    }
+
+    private static PriorityQueue<Ride> getAvailableRides(Trip trip, boolean getResultsFromAllSuppliers){
+        PriorityQueue<Ride> allRides = null;
+
+        if(getResultsFromAllSuppliers){
+            allRides = new PickupRequester().queryRidesFromAllSuppliers(trip);
+        }else{
+            Set<Ride> rides = new PickupRequester().queryRidesFromSupplier(trip, Supplier.DAVE);
+            allRides = new PickupRequester().orderRidesByPriceAscending(rides);
+        }
+
+        return allRides;
     }
 }
