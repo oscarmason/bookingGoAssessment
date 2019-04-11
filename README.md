@@ -3,6 +3,8 @@
 ## Setup
 
 This program was developed in IntelliJ Idea 2019 using the Maven project management system.
+It was implemented in Java 10.
+
 Its dependencies are:
 * JSON
 * Spring Framework
@@ -11,7 +13,7 @@ Its dependencies are:
 ## Build
 To build the jar files, execute:
 
-`mvn package`
+`mvn clean package compile assembly:single`
 
 ## Part 1
 
@@ -19,16 +21,15 @@ To build the jar files, execute:
 -d is used to indicate that only Dave's Taxis should be queried
 The four arguments that follow are: pickupLat pickupLong dropoffLat dropoffLong. For example:
 
-`java -cp target/bookingGoAssessment-1.0-SNAPSHOT-jar-with-dependencies.jar com.booking.go.assessment.Task1 -d 3.410632 -2.157533 3.410632 -2.157533`
+`java -jar target/bookingGoAssessment-1.0-SNAPSHOT-jar-with-dependencies.jar -d 3.410632 -2.157533 3.410632 -2.157533`
 
 ### Console application to filter by number of passengers
 
 To query all suppliers, -d should be excluded.
 The four location arguments are required, while the number of passengers is optional. For example:
-
-`java -cp target/bookingGoAssessment-1.0-SNAPSHOT-jar-with-dependencies.jar com.booking.go.assessment.Task1 3.410632 -2.157533 3.410632 -2.157533 3`
+`java -jar target/bookingGoAssessment-1.0-SNAPSHOT-jar-with-dependencies.jar 3.410632 -2.157533 3.410632 -2.157533 3`
 
 ## Part 2
 
-`java -cp target/bookingGoAssessment-1.0-SNAPSHOT-jar-with-dependencies.jar com.booking.go.assessment.Task2`
+`java -jar target/bookingGoAssessment-1.0-SNAPSHOT.jar`
 `http://localhost:8080/?pickup=3.410632,-2.157533&dropoff=3.410632,-2.157533&num_passengers=3`
